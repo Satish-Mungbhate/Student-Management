@@ -59,7 +59,7 @@ def get_students():
     students = cursor.fetchall()
     #return {"students": students}
     #print(students)
-    cursor.close()
+    #cursor.close()
     student_list = []
     for student in students:
         student_dict = {
@@ -68,6 +68,7 @@ def get_students():
             "cource": student[2],
         }
         student_list.append(student_dict)
+    cursor.close()
     return student_list
 
 #Get Student by ID
@@ -77,13 +78,14 @@ def get_student(student_id: int):
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM students WHERE id = %s", (student_id,))
     student = cursor.fetchone()
-    cursor.close()
+    #cursor.close()
     if student:
         return {
             "id": student[0],
             "name": student[1],
             "cource": student[2]
         }
+    cursor.close()
     return {"error": "Student not found"}
 
 #Create New Student Record
