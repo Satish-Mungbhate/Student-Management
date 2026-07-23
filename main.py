@@ -41,7 +41,7 @@ connection = psycopg2.connect(
 '''
 connection = psycopg2.connect(os.getenv("DATABASE_URL"))
 
-cursor = connection.cursor()
+#cursor = connection.cursor()
 
 #class Base Validation Model
 class Student(BaseModel):
@@ -54,10 +54,12 @@ class Student(BaseModel):
 @app.get("/students")
 def get_students():
     #pass
+    cursor = connection.cursor()
     cursor.execute("SELECT * FROM students")
     students = cursor.fetchall()
     #return {"students": students}
     #print(students)
+    cursor.close()
     student_list = []
     for student in students:
         student_dict = {
@@ -72,8 +74,10 @@ def get_students():
 @app.get("/students/{student_id}")
 def get_student(student_id: int):
     #print(student_id)
+    cursor = connection.cursor()
     cursor.execute("SELECT * FROM students WHERE id = %s", (student_id,))
     student = cursor.fetchone()
+    cursor.close()
     if student:
         return {
             "id": student[0],
@@ -86,8 +90,10 @@ def get_student(student_id: int):
 @app.post("/students")
 def create_student(student: Student):
     #print(student.id, student.name, student.cource)
+    cursor = connection.cursor()
     cursor.execute("INSERT INTO students VALUES (%s, %s, %s)", (student.id, student.name, student.cource))
     connection.commit()
+    cursor.close()
     return {
         "message": "Record inserted Successfully"
     }
@@ -96,8 +102,10 @@ def create_student(student: Student):
 @app.put("/students/{id}")
 def update_student(id: int, student: Student):
     #cursor.execute("UPDATE students SET id=%s, name = %s, cource = %s WHERE id = %s", (student.id, student.name, student.cource, id))
+    cursor = connection.cursor()
     cursor.execute("UPDATE students SET name = %s, cource = %s WHERE id = %s", (student.name, student.cource, id))
     connection.commit()
+    cursor.close()
     return {
         "message": "Record updated Successfully"
     }
@@ -105,13 +113,16 @@ def update_student(id: int, student: Student):
 # Update Student Record
 @app.patch("/students/{id}")
 def patch_student(id: int, student: Student):
+    cursor = connection.cursor()
     if student.id != None:
         cursor.execute("UPDATE students SET id = %s WHERE id = %s", (student.id, id))
+        cursor.close()
     if student.name != None:
         cursor.execute("UPDATE students SET name = %s WHERE id = %s", (student.name, id))
     if student.cource != None:
         cursor.execute("UPDATE students SET cource = %s WHERE id = %s", (student.cource, id))
     connection.commit()
+    cursor.close()
     return {
         "message": "Record updated Successfully"
     }
@@ -119,8 +130,12 @@ def patch_student(id: int, student: Student):
 # Delete Student Record by ID
 @app.delete("/students/{id}")
 def delete_student(id: int):
+    cursor = connection.cursor()
     cursor.execute("DELETE FROM students WHERE id = %s", (id,))
     connection.commit()
+    cursor.close()
     return {
         "message": "Record deleted Successfully"
     }
+
+connection.close()
